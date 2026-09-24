@@ -1,9 +1,9 @@
 {
-  "version": "2.2.0",
-  "download_url": "https://raw.githubusercontent.com/Saddam0655/ainpath-updates/main/packages/ainpath-control-center-2.2.0.zip",
+  "version": "2.2.1",
+  "download_url": "https://raw.githubusercontent.com/Saddam0655/ainpath-updates/main/packages/ainpath-control-center-2.2.1%20%281%29.zip",
   "homepage": "https://github.com/Saddam0655/ainpath-updates",
   "requires": "6.0",
   "tested": "6.8",
-  "changelog": "AinPath Control Center 2.2.0: independent AinPath login, Smart TXT import, notifications and remote update support.",
-  "sha256": "5b1a68f9c20b5892d391b6bbed0a684d28963009087d812e3c270538bb1d4da7"
+  "changelog": "AinPath Control Center 2.2.1: update source, notification and one-click update test.",
+  "sha256": "77a2af22f5de920d156b4131c4d4dad45e2744ad9c2364f2786d4ba69897a943"
 }
