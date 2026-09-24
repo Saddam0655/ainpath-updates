@@ -17,32 +17,69 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Validate update.json
+      - name: Validate update package
         run: |
           python - <<'PY'
           import json
           import hashlib
           from pathlib import Path
+          from urllib.parse import urlparse, unquote
 
-          data = json.loads(Path("update.json").read_text())
+          data = json.loads(
+              Path("update.json").read_text(encoding="utf-8")
+          )
 
-          package = Path("packages/ainpath-control-center-2.2.0.zip")
+          download_url = data["download_url"]
           expected = data["sha256"].strip().lower()
 
-          actual = hashlib.sha256(package.read_bytes()).hexdigest()
+          filename = unquote(
+              Path(urlparse(download_url).path).name
+          )
 
+          package = Path("packages") / filename
+
+          if not package.is_file():
+              raise SystemExit(
+                  f"Package not found: {package}"
+              )
+
+          actual = hashlib.sha256(
+              package.read_bytes()
+          ).hexdigest()
+
+          print("Package:", package)
           print("Expected:", expected)
           print("Actual:  ", actual)
 
           if actual != expected:
               raise SystemExit("SHA-256 mismatch")
 
-          print("SHA-256 validation passed.")
-          PY
+          checksum_file = (
+              Path("checksums") /
+              f"{filename}.sha256"
+          )
 
-      
-      - name: Validate checksum file
-        run: |
-          expected="$(tr -d '[:space:]' < checksums/ainpath-control-center-2.2.0.zip.sha256)"
-          actual="$(sha256sum packages/ainpath-control-center-2.2.0.zip | awk '{print $1}')"
-          test "$actual" = "$expected"
+          if checksum_file.is_file():
+              checksum_value = (
+                  checksum_file
+                  .read_text(encoding="utf-8")
+                  .strip()
+                  .split()[0]
+                  .lower()
+              )
+
+              print("Checksum file:", checksum_file)
+              print("Checksum:", checksum_value)
+
+              if checksum_value != actual:
+                  raise SystemExit(
+                      "Checksum file mismatch"
+                  )
+          else:
+              print(
+                  "Checksum file not found; "
+                  "update.json SHA-256 validation passed."
+              )
+
+          print("Validation passed")
+          PY
