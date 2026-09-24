@@ -1,0 +1,48 @@
+name: Validate Update
+
+on:
+  push:
+    paths:
+      - "update.json"
+      - "packages/**"
+      - "checksums/**"
+      - ".github/workflows/validate-update.yml"
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate update.json
+        run: |
+          python - <<'PY'
+          import json
+          import hashlib
+          from pathlib import Path
+
+          data = json.loads(Path("update.json").read_text())
+
+          package = Path("packages/ainpath-control-center-2.2.0.zip")
+          expected = data["sha256"].strip().lower()
+
+          actual = hashlib.sha256(package.read_bytes()).hexdigest()
+
+          print("Expected:", expected)
+          print("Actual:  ", actual)
+
+          if actual != expected:
+              raise SystemExit("SHA-256 mismatch")
+
+          print("SHA-256 validation passed.")
+          PY
+
+      
+      - name: Validate checksum file
+        run: |
+          expected="$(tr -d '[:space:]' < checksums/ainpath-control-center-2.2.0.zip.sha256)"
+          actual="$(sha256sum packages/ainpath-control-center-2.2.0.zip | awk '{print $1}')"
+          test "$actual" = "$expected"
